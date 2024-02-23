@@ -11,6 +11,9 @@ extends Phaser.Scene {
         this.player = undefined
         this.stars = undefined
         this.cursor = undefined
+        this.scoreText = undefined
+        this.score = 0
+        this.bombs = undefined
     }
     //
     //
@@ -46,11 +49,13 @@ extends Phaser.Scene {
             repeat: 10,
             setXY: {x: 50, y: 0, stepX:70}
         })
+
+        // agar bintang tidak jatuh
         this.physics.add.collider(this.stars, this.platforms)
         //efek bintang mantul
         this.stars.children.iterate(function(child){
             // @ts-ignore
-            this.children.setBounceY(0.5)
+            child.setBounceY(0.5)
         })
 
         //untuk mengontrol player
@@ -91,6 +96,26 @@ extends Phaser.Scene {
             this
         )
 
+        this.scoreText= this.add.text(16,16,'score : 0',{
+            fontSize: '32px', fill: 'yellow'
+        })
+
+        this.bombs = this.physics.add.group({
+            key: 'bomb',
+            repeat: 5,
+            setXY: {x: 30, y: 0, stepX:120}
+        });
+         // agar bomb tidak jatuh
+         this.physics.add.collider(this.bombs, this.platforms)
+
+         // overlaps bomb
+         this.physics.add.overlap(
+            this.bombs,
+            this.player,
+            this.gameOver,
+            null,
+            this
+        )
     }
     //
     //
@@ -112,11 +137,33 @@ extends Phaser.Scene {
             this.player.setVelocity(0, 0)
             this.player.anims.play('turn')
         }
+
+        // game win
+        if(this.score >= 100){
+            this.physics.pause()
+            this.add.text(300, 300, 'you win!!!',{
+                fontSize: '48px',
+                fill: 'yellow'
+            })
+        }
+
+        if (this.cursor.up.isDown){
+            this.player.setVelocity(0, -200)
+            this.player.anims.play('turn')
+        }
        
     }
 
     collecStar(player, star){
         star.destroy()
+        this.score += 10;
+        this.scoreText.setText('score : ' +this.score );
     }
 
+    gameOver(player, bomb){
+        this.physics.pause()
+        this.add.text(300, 300, 'cupu lu!!!',{
+            fontSize: '48px', fill: 'yellow'
+        })
+    }
 }
